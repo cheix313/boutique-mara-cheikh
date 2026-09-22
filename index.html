@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta name="google-site-verification" content="jonnmOsZMN1EnfOJ2NiKtDqUt3hVI_4Bkp7V26bMe2Q" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Boutique MARA&CHEIKH - Vente de Tissus de Luxe à Kaolack</title>
+    <meta name="description" content="Boutique MARA&CHEIKH au Marché Central de Kaolack. Spécialiste de la vente de Wax, Bazin, Dentelle et Soie.">
+    <meta name="author" content="Khoudia Fall">
+
+    <!-- Partage réseaux sociaux / WhatsApp -->
+    <meta property="og:title" content="Boutique MARA & CHEIKH - Tissus de Luxe à Kaolack">
+    <meta property="og:description" content="Wax, Bazin, Dentelle et Soie au Marché Central de Kaolack. Commandez directement sur WhatsApp.">
+    <meta property="og:type" content="website">
+
+    <!-- Icônes et Polices Google -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Client Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            /* Palette Dark Mode & Or (Luxe) */
+            --primary: #C5A059; 
+            --primary-hover: #DBC078;
+            --bg-color: #1A1A1A; 
+            --surface: #242424; 
+            --text-dark: #F5F5F5; 
+            --text-light: #B0B0B0; 
+            --border-color: #333333; 
+            --danger: #E63946;
+            --success: #25D366;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.6);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .logo-title { font-family: 'Playfair Display', serif; }
+
+        /* --- HEADER --- */
+        .main-header {
+            background: var(--surface);
+            padding: 1.2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-container { display: flex; flex-direction: column; }
+        .logo-title { color: var(--primary); font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; }
+        .logo-subtitle { font-size: 0.75rem; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
+
+        .search-box {
+            display: flex; align-items: center; background: var(--bg-color);
+            border: 1px solid var(--border-color); border-radius: 30px;
+            padding: 0.5rem 1.2rem; width: 100%; max-width: 350px; transition: var(--transition);
+        }
+        .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15); }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; color: var(--text-dark); font-family: 'Poppins'; }
+        .search-box button { background: transparent; border: none; color: var(--primary); font-size: 1.1rem; cursor: pointer; }
+
+        .nav-links { display: flex; gap: 15px; }
+        .nav-links button {
+            background: transparent; border: none; font-size: 0.95rem; cursor: pointer;
+            color: var(--text-dark); font-weight: 500; font-family: 'Poppins';
+            display: flex; align-items: center; gap: 8px; padding: 5px 8px; transition: var(--transition);
+        }
+        .nav-links button:hover, .nav-links button.active-nav { color: var(--primary); }
+        #cart-count { background: var(--primary); color: var(--bg-color); padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+
+        main { padding: 3rem 5%; max-width: 1400px; margin: 0 auto; flex: 1; width: 100%; }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active-tab { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- FILTRES & CATEGORIES --- */
+        .controls-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 15px;
+        }
+        .categories-bar { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; flex: 1; }
+        .categories-bar::-webkit-scrollbar { display: none; }
+        .cat-btn {
+            background: var(--surface); border: 1px solid var(--border-color); color: var(--text-light);
+            padding: 10px 24px; border-radius: 30px; cursor: pointer; font-weight: 500; white-space: nowrap; transition: var(--transition);
+        }
+        .cat-btn.active, .cat-btn:hover { background: var(--primary); color: var(--bg-color); border-color: var(--primary); font-weight: 600; }
+
+        .sort-box {
+            background: var(--surface); color: var(--text-dark); border: 1px solid var(--border-color);
+            padding: 10px 15px; border-radius: 8px; font-family: 'Poppins'; outline: none; cursor: pointer;
+        }
+        .sort-box:focus { border-color: var(--primary); }
+
+        .section-title { margin-bottom: 2rem; font-size: 2.2rem; color: var(--text-dark); position: relative; display: inline-block; }
+        .section-title::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 50%; height: 3px; background: var(--primary); border-radius: 2px; }
+
+        /* --- PRODUCTS GRID --- */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .product-card {
+            background: var(--surface); border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: var(--transition); border: 1px solid var(--border-color);
+        }
+        .product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+        .product-img-wrapper { position: relative; overflow: hidden; height: 320px; cursor: pointer; background: #111; }
+        .product-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .product-card:hover .product-img-wrapper img { transform: scale(1.08); }
+        .category-tag {
+            position: absolute; top: 15px; left: 15px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(4px);
+            color: var(--primary); padding: 6px 12px; font-size: 0.75rem; font-weight: 600; border-radius: 20px; z-index: 2; border: 1px solid rgba(197, 160, 89, 0.3);
+        }
+        
+        .slider-btn {
+            position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white;
+            border: 1px solid rgba(255,255,255,0.2); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
+        }
+        .slider-btn:hover { background: var(--primary); color: var(--bg-color); border-color: var(--primary); }
+        .slider-btn.prev { left: 10px; } .slider-btn.next { right: 10px; }
+
+        .product-info { padding: 1.5rem; display: flex; flex-direction: column; gap: 12px; flex-grow: 1; }
+        .product-info h3 { font-size: 1.2rem; color: var(--text-dark); margin-bottom: 5px; }
+        .product-desc { font-size: 0.85rem; color: var(--text-light); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-price { font-weight: 700; color: var(--primary); font-size: 1.3rem; margin-top: auto; }
+
+        .btn-add-cart, .btn-primary {
+            background: var(--primary); color: var(--bg-color); border: none; padding: 12px;
+            border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem; text-align: center; transition: var(--transition); width: 100%; font-family: 'Poppins';
+        }
+        .btn-add-cart:hover, .btn-primary:hover { background: var(--primary-hover); box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3); }
+        .btn-delete { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 500; margin-top: 5px; }
+        .btn-delete:hover { background: var(--danger); color: white; }
+
+        /* --- A PROPOS & MAP --- */
+        .boutique-story-card {
+            background: var(--surface); border-left: 4px solid var(--primary); padding: 2.5rem;
+            border-radius: var(--radius); box-shadow: var(--shadow-sm); max-width: 900px; margin: 0 auto; border: 1px solid var(--border-color); border-left-width: 4px;
+        }
+        .boutique-story-card h2 { color: var(--primary); margin-bottom: 1.5rem; font-size: 2rem; }
+        .boutique-story-card p { color: var(--text-light); margin-bottom: 1rem; font-size: 1.05rem; line-height: 1.8; }
+        
+        .map-container { margin-top: 3rem; text-align: center; max-width: 900px; margin-left: auto; margin-right: auto; }
+        .map-iframe-wrapper {
+            border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); height: 400px;
+        }
+
+        /* --- CART & ADMIN --- */
+        .admin-box, .cart-container {
+            background: var(--surface); padding: 2.5rem; border-radius: var(--radius);
+            box-shadow: var(--shadow-md); max-width: 700px; margin: 0 auto; border: 1px solid var(--border-color);
+        }
+        .admin-form input, .admin-form select, .admin-form textarea, .admin-box input, .checkout-box input {
+            padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; width: 100%;
+            background: var(--bg-color); color: var(--text-dark); font-family: 'Poppins';
+        }
+        .admin-form input:focus, .admin-form select:focus, .admin-form textarea:focus, .checkout-box input:focus { border-color: var(--primary); outline: none; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color); }
+        .cart-price-group { font-weight: 600; color: var(--primary); }
+        
+        .btn-whatsapp {
+            background: var(--success); color: #111; border: none; padding: 15px; border-radius: 8px; font-size: 1.05rem; font-weight: 700;
+            cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: var(--transition);
+        }
+        .btn-whatsapp:hover { background: #20BA56; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); }
+        .btn-disabled { background: #444 !important; color: #888 !important; cursor: not-allowed; box-shadow: none !important; }
+
+        /* --- WHATSAPP FLOTTANT --- */
+        .floating-whatsapp {
+            position: fixed; bottom: 30px; right: 30px; background: var(--success); color: white; width: 60px; height: 60px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); cursor: pointer; z-index: 1000; transition: transform 0.3s ease; text-decoration: none;
+        }
+        .floating-whatsapp:hover { transform: scale(1.1); }
+
+        /* --- FOOTER --- */
+        footer {
+            background: var(--surface); border-top: 1px solid var(--border-color); padding: 2rem 5%; text-align: center; color: var(--text-light); margin-top: auto;
+        }
+        .footer-content { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 15px; }
+        .footer-section h4 { color: var(--primary); margin-bottom: 10px; font-family: 'Playfair Display'; font-size: 1.2rem; }
+        .footer-section p { font-size: 0.9rem; margin-bottom: 5px; }
+
+        /* --- MODALS --- */
+        .zoom-modal {
+            position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);
+        }
+        .zoom-modal img { max-width: 90%; max-height: 85vh; object-fit: contain; border-radius: 8px; }
+        .close-modal { position: absolute; top: 25px; right: 35px; color: var(--text-light); font-size: 40px; cursor: pointer; }
+        .close-modal:hover { color: var(--primary); }
+        
+        .checkout-box { 
+            background: var(--surface); 
+            padding: 2.5rem; 
+            border-radius: 16px; 
+            width: 90%; 
+            max-width: 480px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: var(--shadow-md);
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-header { justify-content: center; text-align: center; }
+            .nav-links { width: 100%; justify-content: space-around; flex-wrap: wrap; }
+            .controls-bar { flex-direction: column; align-items: stretch; }
+            .floating-whatsapp { bottom: 20px; right: 20px; width: 50px; height: 50px; font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <h1 class="logo-title">MARA & CHEIKH</h1>
+            <span class="logo-subtitle">Vente de tissus de luxe</span>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Rechercher (ex: Wax, Bazin)...">
+            <button><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+
+        <nav class="nav-links">
+            <button onclick="showTab('products-tab', this)" class="active-nav"><i class="fa-solid fa-shop"></i> Boutique</button>
+            <button onclick="showTab('about-tab', this)"><i class="fa-solid fa-circle-info"></i> À propos</button>
+            <button onclick="showTab('cart-tab', this)"><i class="fa-solid fa-bag-shopping"></i> Panier <span id="cart-count">0</span></button>
+            <button onclick="showTab('admin-tab', this)"><i class="fa-solid fa-lock"></i> Espace vendeur</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- ONGLET BOUTIQUE -->
+        <section id="products-tab" class="tab-content active-tab">
+            <div class="controls-bar">
+                <div class="categories-bar">
+                    <button class="cat-btn active" onclick="filterCategory('all', this)">Toutes les collections</button>
+                    <button class="cat-btn" onclick="filterCategory('Wax', this)">Wax Authentique</button>
+                    <button class="cat-btn" onclick="filterCategory('Dentelle & Soie', this)">Dentelle & Soie</button>
+                    <button class="cat-btn" onclick="filterCategory('Bazin', this)">Bazin Riche</button>
+                    <button class="cat-btn" onclick="filterCategory('Pagnes', this)">Pagnes Tissés</button>
+                </div>
+                
+                <select id="sort-select" class="sort-box" onchange="renderProducts()">
+                    <option value="recent">✨ Les plus récents</option>
+                    <option value="price-asc">Prix : Croissant</option>
+                    <option value="price-desc">Prix : Décroissant</option>
+                </select>
+            </div>
+
+            <h2 id="category-title" class="section-title">Toutes nos collections</h2>
+            <div id="loading-message" style="text-align:center; padding:3rem; color:var(--text-light);">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color:var(--primary); margin-bottom:10px;"></i><br>Chargement des tissus en direct...
+            </div>
+            <div id="products-grid" class="products-grid"></div>
+        </section>
+
+        <!-- ONGLET À PROPOS & CARTE -->
+        <section id="about-tab" class="tab-content">
+            <h2 class="section-title" style="text-align: center; display: block; margin-bottom: 2.5rem;">Notre Histoire</h2>
+            
+            <div class="boutique-story-card">
+                <h2>L'Élégance au cœur de Kaolack</h2>
+                <p>Bienvenue chez <strong>MARA & CHEIKH</strong>, la référence incontournable en matière de tissus de qualité supérieure au Sénégal. Située au <strong>Marché Central de Kaolack</strong>, notre boutique vous invite à découvrir un univers riche en couleurs, en élégance et en tradition.</p>
+                <p>Sous la direction de <strong>Khoudia Fall</strong>, nous sélectionnons rigoureusement les étoffes les plus prestigieuses pour sublimer vos tenues lors de vos plus beaux événements.</p>
+                
+                <div style="margin-top: 25px; padding: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; text-align: center;">
+                    <p style="color: var(--primary); font-size: 1.2rem; font-weight: 600; margin: 0;">
+                        <i class="fa-solid fa-phone"></i> Appels & WhatsApp : 77 364 66 18
+                    </p>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem; font-family: 'Playfair Display'; font-size: 1.8rem;">
+                    <i class="fa-solid fa-location-dot"></i> Retrouvez-nous au Marché Central
+                </h3>
+                <div class="map-iframe-wrapper">
+                    <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q=Marché%20Central,%20Kaolack,%20Sénégal&t=&z=16&ie=UTF8&iwloc=&output=embed"></iframe>
+                </div>
+                <p style="color: var(--text-light); margin-top: 15px; font-size: 0.95rem;">
+                    Boutique MARA & CHEIKH, à l'intérieur du marché central de Kaolack. Demandez Khoudia Fall !
+                </p>
+            </div>
+        </section>
+
+        <!-- ONGLET PANIER -->
+        <section id="cart-tab" class="tab-content">
+            <h2 class="section-title">Votre Panier</h2>
+            <div class="cart-container">
+                <ul id="cart-items" style="list-style: none; margin-bottom: 25px;"></ul>
+                <div class="cart-summary" style="border-top: 1px dashed var(--border-color); padding-top: 20px;">
+                    <h3 style="font-size: 1.5rem; display:flex; justify-content:space-between; color: var(--text-dark);">
+                        Total : <span><span id="final-total" style="color:var(--primary);">0</span> <span style="color:var(--primary); font-size:1.2rem;">FCFA</span></span>
+                    </h3>
+                    <button id="whatsapp-btn" class="btn-whatsapp btn-disabled" disabled>
+                        <i class="fa-brands fa-whatsapp" style="font-size: 1.3rem;"></i> Commander sur WhatsApp
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ONGLET VENDEUR -->
+        <section id="admin-tab" class="tab-content">
+            <div id="admin-login" class="admin-box">
+                <h2 style="font-family:'Playfair Display'; color:var(--primary); margin-bottom:10px;">Espace Vendeur</h2>
+                <input type="password" id="admin-pwd" placeholder="Mot de passe">
+                <button onclick="checkAdminPassword()" class="btn-primary" style="margin-top: 15px;"><i class="fa-solid fa-arrow-right-to-bracket"></i> Accéder</button>
+            </div>
+
+            <div id="admin-dashboard" class="admin-box" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:15px; margin-bottom:20px;">
+                    <h2 style="font-family:'Playfair Display'; color:var(--primary);">Gestion du Catalogue</h2>
+                    <button onclick="lockAdmin()" class="btn-delete" style="margin:0;"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+                </div>
+                
+                <form id="add-product-form" class="admin-form">
+                    <input type="text" id="prod-name" placeholder="Nom du tissu" required>
+                    <textarea id="prod-desc" placeholder="Description..." rows="3"></textarea>
+                    <div style="display:flex; gap:15px;">
+                        <select id="prod-category" required style="flex:1;">
+                            <option value="">-- Catégorie --</option>
+                            <option value="Wax">Wax</option>
+                            <option value="Dentelle & Soie">Dentelle & Soie</option>
+                            <option value="Bazin">Bazin</option>
+                            <option value="Pagnes">Pagnes</option>
+                        </select>
+                        <input type="number" id="prod-price" placeholder="Prix (FCFA)" required style="flex:1;">
+                    </div>
+                    <div style="background:var(--bg-color); padding:15px; border:1px dashed var(--border-color); border-radius:8px;">
+                        <label style="color:var(--text-dark);">📸 Photos :</label>
+                        <input type="file" id="prod-image-files" multiple accept="image/*" required>
+                    </div>
+                    <button type="submit" id="submit-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Ajouter</button>
+                    <p id="upload-status" style="display:none; color:var(--primary); text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Traitement et envoi...</p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER PROFESSIONNEL -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Boutique MARA & CHEIKH</h4>
+                <p>Marché Central de Kaolack</p>
+                <p>Gérante : Khoudia Fall</p>
+            </div>
+            <div class="footer-section">
+                <h4>Horaires</h4>
+                <p>Tous les jours : 10h00 - 21h00</p>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p><i class="fa-solid fa-phone"></i> 77 364 66 18</p>
+                <p><i class="fa-brands fa-whatsapp"></i> 77 364 66 18</p>
+            </div>
+        </div>
+        <p style="font-size: 0.8rem; margin-top: 10px;">&copy; 2026 Boutique MARA & CHEIKH. Tous droits réservés.</p>
+    </footer>
+
+    <!-- BOUTON WHATSAPP FLOTTANT -->
+    <a href="https://wa.me/221773646618" target="_blank" class="floating-whatsapp" title="Discuter avec Khoudia Fall">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Modals (Zoom & Checkout améliorée) -->
+    <div id="zoom-modal" class="zoom-modal" style="display:none;">
+        <span class="close-modal" onclick="closeZoomModal()">&times;</span>
+        <button class="modal-prev" onclick="slideModal(-1)" style="position:absolute;left:20px;font-size:30px;background:none;border:none;color:white;cursor:pointer;">&#10094;</button>
+        <img id="modal-img" src="" alt="Zoom">
+        <button class="modal-next" onclick="slideModal(1)" style="position:absolute;right:20px;font-size:30px;background:none;border:none;color:white;cursor:pointer;">&#10095;</button>
+    </div>
+
+    <!-- Fenêtre de commande repensée -->
+    <div id="checkout-modal" class="zoom-modal" style="display:none;">
+        <div class="checkout-box">
+            <span onclick="closeCheckoutModal()" style="position:absolute;top:15px;right:20px;font-size:26px;color:var(--text-light);cursor:pointer;transition:var(--transition);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">&times;</span>
+            
+            <div style="text-align: center; margin-bottom: 15px;">
+                <div style="width: 50px; height: 50px; background: rgba(197, 160, 89, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; border: 1px solid rgba(197, 160, 89, 0.3);">
+                    <i class="fa-solid fa-bag-shopping" style="font-size: 1.3rem; color: var(--primary);"></i>
+                </div>
+                <h3 style="font-family:'Playfair Display'; color:var(--primary); font-size: 1.6rem; margin-bottom: 5px;">Dernière étape !</h3>
+                <p style="color: var(--text-light); font-size: 0.85rem; line-height: 1.4;">Remplissez vos informations pour valider votre sélection de tissus avec Khoudia Fall.</p>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 6px;"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 5px;"></i> Prénom et Nom</label>
+                <input type="text" id="checkout-name" placeholder="Ex: Aminata Diallo">
+            </div>
+
+            <div style="margin-bottom: 22px;">
+                <label style="display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 6px;"><i class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 5px;"></i> Adresse de livraison</label>
+                <input type="text" id="checkout-address" placeholder="Ex: Léona, Kaolack">
+            </div>
+
+            <button onclick="submitOrderToWhatsApp()" class="btn-whatsapp">
+                <i class="fa-brands fa-whatsapp" style="font-size: 1.3rem;"></i> Envoyer ma commande sur WhatsApp
+            </button>
+            <p style="text-align: center; font-size: 0.75rem; color: var(--text-light); margin-top: 12px;"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Commande rapide et sécurisée sans engagement</p>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION SUPABASE ---
+        const SUPABASE_URL = 'https://pibdethyludgdagyaqyo.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_O1iNfaDhboWYSpZcdVQvHg_lNyFNkxL';
+        
+        const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let products = [];
+        let cart = JSON.parse(localStorage.getItem("mara_cheikh_cart")) || [];
+        let currentCategory = "all";
+        let isVendeurConnected = false;
+        let productImageIndexes = {};
+
+        function showTab(tabId, btnElement = null) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
+            document.getElementById(tabId).classList.add('active-tab');
+            if(btnElement) {
+                document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active-nav'));
+                btnElement.classList.add('active-nav');
+            }
+            if(tabId === 'cart-tab') updateCartUI();
+        }
+
+        function filterCategory(catName, btnElement) {
+            currentCategory = catName;
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+            document.getElementById("category-title").textContent = catName === 'all' ? "Toutes nos collections" : catName;
+            renderProducts();
+        }
+
+        // --- CHARGEMENT DEPUIS SUPABASE ---
+        async function loadProducts() {
+            document.getElementById("loading-message").style.display = "block";
+            try {
+                const { data, error } = await _supabase
+                    .from('Tissus')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                products = data || [];
+            } catch (error) {
+                console.error("Erreur de chargement Supabase :", error);
+                products = [];
+            }
+            document.getElementById("loading-message").style.display = "none";
+            renderProducts();
+        }
+        loadProducts();
+
+        function renderProducts() {
+            const grid = document.getElementById("products-grid");
+            grid.innerHTML = "";
+            const search = document.getElementById("search-input").value.toLowerCase();
+            const sortOrder = document.getElementById("sort-select").value;
+
+            let filtered = products.filter(p => {
+                const matchCat = (currentCategory === "all" || p.category === currentCategory);
+                const matchSearch = p.name.toLowerCase().includes(search) || (p.description && p.description.toLowerCase().includes(search));
+                return matchCat && matchSearch;
+            });
+
+            if (sortOrder === "price-asc") filtered.sort((a, b) => a.price - b.price);
+            else if (sortOrder === "price-desc") filtered.sort((a, b) => b.price - a.price);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:var(--text-light);">Aucun tissu trouvé.</p>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const card = document.createElement("div");
+                card.classList.add("product-card");
+                const imgs = p.images || [p.image];
+                if (!productImageIndexes[p.id]) productImageIndexes[p.id] = 0;
+                let idx = productImageIndexes[p.id];
+
+                let html = `<div class="product-img-wrapper" onclick="openZoomModal(${JSON.stringify(imgs).replace(/"/g, '&quot;')}, ${idx}, event)">
+                    <span class="category-tag">${p.category}</span>
+                    <img src="${imgs[idx]}">`;
+                if (imgs.length > 1) {
+                    html += `<button class="slider-btn prev" onclick="changeSlide('${p.id}', -1, ${imgs.length}, event)">&#10094;</button>
+                             <button class="slider-btn next" onclick="changeSlide('${p.id}', 1, ${imgs.length}, event)">&#10095;</button>`;
+                }
+                html += `</div><div class="product-info">
+                    <h3>${p.name}</h3>
+                    ${p.description ? `<p class="product-desc">${p.description}</p>` : ''}
+                    <div class="product-price">${Number(p.price).toLocaleString()} FCFA</div>
+                    <button class="btn-add-cart" onclick="addToCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Ajouter au panier</button>`;
+                if (isVendeurConnected) html += `<button class="btn-delete" onclick="deleteProduct('${p.id}')">Retirer du catalogue</button>`;
+                html += `</div>`;
+                
+                card.innerHTML = html;
+                grid.appendChild(card);
+            });
+        }
+
+        function changeSlide(id, dir, max, event) {
+            event.stopPropagation();
+            productImageIndexes[id] = (productImageIndexes[id] + dir + max) % max;
+            renderProducts();
+        }
+
+        let zoomImgs = [], zoomIdx = 0;
+        function openZoomModal(imgs, idx, e) {
+            if(e) e.stopPropagation();
+            zoomImgs = imgs; zoomIdx = idx;
+            document.getElementById("modal-img").src = zoomImgs[zoomIdx];
+            document.getElementById("zoom-modal").style.display = "flex";
+        }
+        function closeZoomModal() { document.getElementById("zoom-modal").style.display = "none"; }
+        function slideModal(dir) {
+            zoomIdx = (zoomIdx + dir + zoomImgs.length) % zoomImgs.length;
+            document.getElementById("modal-img").src = zoomImgs[zoomIdx];
+        }
+
+        document.getElementById("search-input").addEventListener("input", renderProducts);
+
+        function checkAdminPassword() {
+            if (document.getElementById("admin-pwd").value === "maman123") {
+                document.getElementById("admin-login").style.display = "none";
+                document.getElementById("admin-dashboard").style.display = "block";
+                document.getElementById("admin-pwd").value = ""; 
+                isVendeurConnected = true; renderProducts();
+            } else alert("Mot de passe incorrect !");
+        }
+        function lockAdmin() {
+            document.getElementById("admin-login").style.display = "block";
+            document.getElementById("admin-dashboard").style.display = "none";
+            isVendeurConnected = false; renderProducts();
+        }
+
+        // --- ENREGISTREMENT SUR SUPABASE (photos envoyées dans Supabase Storage) ---
+        const STORAGE_BUCKET = 'tissus-images';
+
+        document.getElementById("add-product-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("submit-btn");
+            const status = document.getElementById("upload-status");
+            btn.disabled = true; status.style.display = "block";
+
+            const name = document.getElementById("prod-name").value;
+            const desc = document.getElementById("prod-desc").value;
+            const cat = document.getElementById("prod-category").value;
+            const price = parseFloat(document.getElementById("prod-price").value);
+            const files = document.getElementById("prod-image-files").files;
+
+            try {
+                const imageUrls = await uploadImagesToStorage(files);
+                await saveProdToSupabase(name, desc, cat, price, imageUrls);
+            } catch (error) {
+                alert("Erreur lors de l'ajout du tissu. Vérifiez votre connexion et réessayez.");
+                console.error(error);
+            }
+            btn.disabled = false;
+            status.style.display = "none";
+        });
+
+        // Redimensionne une photo (max 1200px de large) et la renvoie en Blob JPEG compressé
+        function resizeImageToBlob(file, maxWidth = 1200, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onerror = reject;
+                    img.onload = () => {
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) { h *= maxWidth / w; w = maxWidth; }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Envoie chaque photo dans le bucket Supabase Storage et renvoie les URLs publiques
+        async function uploadImagesToStorage(files) {
+            const urls = [];
+            for (let i = 0; i < files.length; i++) {
+                const blob = await resizeImageToBlob(files[i]);
+                const fileName = `tissu_${Date.now()}_${i}.jpg`;
+                const { error: uploadError } = await _supabase.storage
+                    .from(STORAGE_BUCKET)
+                    .upload(fileName, blob, { contentType: 'image/jpeg' });
+                if (uploadError) throw uploadError;
+
+                const { data } = _supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
+                urls.push(data.publicUrl);
+            }
+            return urls;
+        }
+
+        async function saveProdToSupabase(name, desc, cat, price, imageUrls) {
+            const newProduct = {
+                id: 'tissu_' + Date.now(),
+                name,
+                description: desc,
+                category: cat,
+                price,
+                images: imageUrls,
+                created_at: new Date().toISOString()
+            };
+
+            const { error } = await _supabase.from('Tissus').insert([newProduct]);
+            if (error) {
+                alert("Erreur lors de l'enregistrement dans Supabase.");
+                console.error(error);
+                return;
+            }
+            alert("Tissu ajouté avec succès pour tous les visiteurs !");
+            document.getElementById("add-product-form").reset();
+            loadProducts();
+        }
+
+        // --- SUPPRESSION SUR SUPABASE (produit + ses photos dans le Storage) ---
+        async function deleteProduct(id) {
+            if (prompt("Mot de passe :") === "maman123") {
+                const product = products.find(p => p.id === id);
+                if (product && product.images && product.images.length) {
+                    const fileNames = product.images.map(url => url.split('/').pop()).filter(Boolean);
+                    await _supabase.storage.from(STORAGE_BUCKET).remove(fileNames);
+                }
+                const { error } = await _supabase.from('Tissus').delete().eq('id', id);
+                if (error) {
+                    alert("Erreur lors de la suppression.");
+                    console.error(error);
+                } else {
+                    loadProducts();
+                }
+            }
+        }
+
+        function addToCart(id) {
+            const p = products.find(p => p.id === id);
+            const inCart = cart.find(i => i.id === id);
+            inCart ? inCart.quantity++ : cart.push({ ...p, quantity: 1 });
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById("cart-items");
+            const btn = document.getElementById("whatsapp-btn");
+            list.innerHTML = "";
+            let tItems = 0, tPrice = 0;
+
+            if (cart.length === 0) {
+                list.innerHTML = '<li style="text-align:center; color:var(--text-light);">Panier vide.</li>';
+                btn.classList.add("btn-disabled"); btn.disabled = true;
+            } else {
+                cart.forEach((item, idx) => {
+                    tItems += item.quantity; tPrice += item.price * item.quantity;
+                    list.innerHTML += `<li class="cart-item">
+                        <div><strong>${item.name}</strong><br><small>${item.quantity} x ${Number(item.price).toLocaleString()} FCFA</small></div>
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <span class="cart-price-group">${(item.price * item.quantity).toLocaleString()} FCFA</span>
+                            <button onclick="cart.splice(${idx},1); updateCartUI()" style="background:var(--danger);color:white;border:none;border-radius:50%;width:25px;height:25px;cursor:pointer;">X</button>
+                        </div></li>`;
+                });
+                btn.classList.remove("btn-disabled"); btn.disabled = false;
+            }
+            document.getElementById("cart-count").textContent = tItems;
+            document.getElementById("final-total").textContent = tPrice.toLocaleString();
+            localStorage.setItem("mara_cheikh_cart", JSON.stringify(cart));
+        }
+
+        document.getElementById("whatsapp-btn").addEventListener("click", () => {
+            document.getElementById("checkout-name").value = localStorage.getItem("userName") || "";
+            document.getElementById("checkout-address").value = localStorage.getItem("userAddress") || "";
+            document.getElementById("checkout-modal").style.display = "flex";
+        });
+        function closeCheckoutModal() { document.getElementById("checkout-modal").style.display = "none"; }
+
+        function submitOrderToWhatsApp() {
+            const name = document.getElementById("checkout-name").value.trim();
+            const addr = document.getElementById("checkout-address").value.trim();
+            if (!name || !addr) return alert("Remplissez vos informations !");
+            
+            localStorage.setItem("userName", name); localStorage.setItem("userAddress", addr);
+            
+            let msg = `*✨ NOUVELLE COMMANDE - MARA & CHEIKH ✨*\n\n👤 Client : ${name}\n📍 Adresse : ${addr}\n\n*Articles :*\n`;
+            let total = 0;
+            cart.forEach(i => { msg += `▪️ ${i.name} (x${i.quantity}) : ${(i.price * i.quantity).toLocaleString()} FCFA\n`; total += i.price * i.quantity; });
+            msg += `\n*💰 TOTAL : ${total.toLocaleString()} FCFA*`;
+
+            cart = []; updateCartUI(); closeCheckoutModal();
+            window.open(`https://wa.me/221773646618?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+        updateCartUI();
+    </script>
+</body>
+</html>
